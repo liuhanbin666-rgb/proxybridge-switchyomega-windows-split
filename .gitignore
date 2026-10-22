@@ -1,0 +1,11 @@
+# Runtime configuration may contain plaintext proxy credentials.
+*.pbprofile
+OmegaOptions-*.bak
+*.env
+*.log
+*.tmp
+*.zip
+*.exe
+work/
+outputs/*.pbprofile
+outputs/OmegaOptions-*.bak
