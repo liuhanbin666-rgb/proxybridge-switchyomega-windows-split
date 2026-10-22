@@ -67,6 +67,24 @@ function Add-Rule([Collections.Generic.List[object]]$Rules, [string]$Process, [s
     $domains = if ($Hosts -eq 'localhost') { 'localhost' } elseif ($Hosts -eq '*') { '*' } else { '' }
     $Rules.Add([ordered]@{ Name="$Process $Hosts $Action"; ProcessName=$Process; TargetHosts=$ipHosts; TargetDomains=$domains; TargetPorts='*'; Protocol='BOTH'; Action=$Action; IsEnabled=$true; LocalhostViaProxy=$false; ProxyConfigId=1 })
 }
+function Find-Browser([string]$Executable) {
+    foreach ($root in @('HKCU:\Software\Microsoft\Windows\CurrentVersion\App Paths','HKLM:\Software\Microsoft\Windows\CurrentVersion\App Paths')) {
+        $key = Join-Path $root $Executable
+        if (Test-Path -LiteralPath $key) {
+            $path = (Get-Item -LiteralPath $key).GetValue('')
+            if ($path -and (Test-Path -LiteralPath $path)) { return $path }
+        }
+    }
+    $known = if ($Executable -eq 'msedge.exe') {
+        @("${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe", "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe")
+    } else {
+        @("$env:ProgramFiles\Google\Chrome\Application\chrome.exe", "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe", "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe")
+    }
+    foreach ($path in $known) { if (Test-Path -LiteralPath $path) { return $path } }
+    $cmd = Get-Command $Executable -ErrorAction SilentlyContinue
+    if ($cmd) { return $cmd.Source }
+    Fail "找不到 $Executable，请先安装该浏览器，或改选另一浏览器。"
+}
 
 if ($SyntaxOnly) { return }
 try {
@@ -106,8 +124,8 @@ try {
     } else {
         $browserExe = 'chrome.exe'; $store = 'https://chromewebstore.google.com/detail/pfnededegaaopdmhkdmcofjmoldfiped'
     }
-    $cmd = Get-Command $browserExe -ErrorAction SilentlyContinue
-    if ($cmd) { Start-Process -FilePath $cmd.Source -ArgumentList $store } else { Start-Process $store }
+    $browserPath = Find-Browser $browserExe
+    Start-Process -FilePath $browserPath -ArgumentList $store
     Say "商店页面：$store"
     $null = Read-Host '请在商店手动添加 Proxy SwitchyOmega 3 (ZeroOmega)，完成后按回车'
 
