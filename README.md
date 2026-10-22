@@ -1,37 +1,63 @@
-# ProxyBridge + SwitchyOmega Windows 分流向导
+# ProxyBridge + SwitchyOmega Windows 流量分流
 
-桌面双击 `Start_SplitProxy.bat`，并保持 `SplitProxy.ps1` 与 BAT 在同一目录。脚本只做分流配置，不修改 Windows 系统代理。安装 ProxyBridge 和浏览器扩展需要用户手动完成。
+想让 Windows 上指定程序和浏览器里的指定网站使用你已有的本地代理，同时让本地开发、局域网和其他流量直连？本项目提供一键向导，生成 ProxyBridge 与 SwitchyOmega 3（ZeroOmega）各自可导入的配置。
+
+使用前，你需要已有在本机 `127.0.0.1` 提供 SOCKS5 或 HTTP 端口的上游代理。本项目不提供上游代理服务，也不修改 Windows 系统代理。
+
+## 使用的工具清单
+
+| 工具 | 是什么 | 作用 | 小白怎么获得 |
+| --- | --- | --- | --- |
+| ProxyBridge | 进程级流量分流工具 | 劫持指定 `.exe` 进程的流量，按规则转发到本地代理或直连 | 向导从[官方 GitHub Releases](https://github.com/InterceptSuite/ProxyBridge/releases)下载 Windows 安装包。已核对版本的文件名为 `ProxyBridge-Setup-4.2.0.exe`；下载后右键**以管理员身份运行**。新版安装包自带 WinDivert 驱动。 |
+| `Start_SplitProxy.bat` + `SplitProxy.ps1` | 本技能自带的一键向导，两个文件须在同一目录 | 自动下载并按官方 SHA256 校验 ProxyBridge 安装包、扫描 `127.0.0.1` 监听端口、测试代理连通、生成两份配置 | 下载本仓库 `scripts/` 目录中的两个文件，放在同一文件夹；也可下载仓库 ZIP 后进入 `scripts/`。 |
+| SwitchyOmega 3（ZeroOmega） | 浏览器域名分流扩展 | 让 Edge/Chrome 按网站决定走本地代理或直连 | 按向导选择浏览器，它会打开对应官方扩展商店页面；在 Edge/Chrome 商店免费安装。 |
+| WinDivert 驱动 | ProxyBridge 底层网络驱动 | 支持 ProxyBridge 捕获程序流量 | 新版 ProxyBridge 安装包自动安装，无需单独处理。 |
+| 上游代理（SOCKS5/HTTP） | 用户自己已有的本地代理服务 | 接收需要转发的流量；本技能只负责把流量分给它 | 使用你已有服务提供的 `127.0.0.1` 端口；没有时先自行准备。 |
+| PowerShell、`netstat` | Windows 自带命令行工具 | 运行向导、列出本地监听端口 | Windows 自带，无需安装。 |
 
 ## 使用步骤
 
-1. BAT 调起 PowerShell，按 GitHub 发布信息选取最新 Windows 安装包，下载到桌面并核对文件大小、SHA256 和 EXE 文件头；打印 `127.0.0.1` 的 `LISTENING` TCP 端口并暂停。
-2. 管理员运行 ProxyBridge 安装包。当前官方 Windows 版是安装程序，不是压缩包；安装器如允许选目录，建议 `C:\ProxyBridge`。旧版压缩包需解压到无中文无空格路径，且仅在驱动确实缺失时手动管理员运行包内 `install_driver.bat`。
-3. 选择 Edge 或 Chrome，脚本打开相应官方扩展商店页面。用户手动安装 **Proxy SwitchyOmega 3 (ZeroOmega)**。
-4. 选择本地 SOCKS5 或 HTTP 端口，输入可选认证信息。脚本连接本地代理并通过代理向 `example.com:443` 发起 CONNECT；失败立即停止。
-5. 测试通过后在桌面生成 `SplitProxy.pbprofile` 与 `OmegaOptions-SplitProxy.bak`。分别在 ProxyBridge 的 **Profile > Import Profile** 和扩展的导入/导出页面导入，选择 `Split-Auto` 并核对后开启捕获。
+1. 将 `scripts/Start_SplitProxy.bat` 和 `scripts/SplitProxy.ps1` 下载到同一文件夹，并启动你已有的本地代理服务。
+2. 双击 BAT，按窗口提示操作。向导下载 ProxyBridge 安装包到桌面，检查大小、SHA256 和 EXE 文件头；校验失败时不要安装。
+3. 在桌面找到安装包，右键选择**以管理员身份运行**，完成安装后回到向导继续。
+4. 选择 Edge 或 Chrome，在向导打开的官方商店页面手动安装 SwitchyOmega 3（ZeroOmega）。选择本地 SOCKS5/HTTP 类型与端口。向导会测试本地连接及经代理连接 `example.com:443`；测试失败会停止。
+5. 测试通过后，桌面会生成 `SplitProxy.pbprofile` 和 `OmegaOptions-SplitProxy.bak`。在 ProxyBridge 的 **Profile > Import Profile** 导入前者，检查规则和代理参数后启用 **Enable ProxyBridge**。
+6. 在扩展的**选项 > 导入/导出 > 从备份恢复**中导入后者，再选择 `Split-Auto`。恢复备份会替换扩展现有配置；如有原配置，请先在扩展内自行备份。
+7. 检查本地服务、局域网地址与目标网站的实际分流结果。预设规则让指定进程或域名使用代理，其他流量默认直连；具体规则以生成配置为准。
 
-## 规则
+## 常见问题 Q&A
 
-ProxyBridge 规则从上到下：回环和私有网络直连；ProxyBridge 自身、微信开发者工具、HBuilderX、Chrome、Edge 直连；Cursor、VS Code、Git、Node、Python 走选定代理；其他进程直连。浏览器由扩展按站点分流：GitHub 和列出的海外 AI 域名走代理，其他站点（包括国内站点）默认直连。本地和局域网规则置顶。
+**Q：双击 BAT 提示缺少 `SplitProxy.ps1`？**
 
-Chrome/Edge 不支持 SOCKS5 用户名密码认证。脚本遇到此组合时停止，请选择无认证 SOCKS5 或 HTTP 端口。HTTP 认证信息会保存在本机生成的配置文件中；这些文件包含明文凭据时不得分享、上传或提交 Git。
+A：确认两个文件在同一文件夹，并双击该文件夹里的 BAT。
 
-## 自检与故障排查
+**Q：扫描不到端口，或代理测试失败？**
 
-- 检查安装包校验通过、本地代理端口仍为 `LISTENING`。
-- 核对 ProxyBridge 和扩展均为 `127.0.0.1`、相同类型和端口。
-- 在 ProxyBridge 中确认已导入规则、规则顺序正确并启用捕获；Chrome/Edge 命中 `DIRECT`。
-- 在扩展中确认启用 `Split-Auto`，没有其他扩展争用代理控制权。
-- 访问 GitHub、国内站点、本地开发服务和 `192.168.*` 真机调试地址，核对分流结果。
-- 如代理连接失败，检查端口、协议、认证与测试站点可达性。如开发服务异常，先停止 ProxyBridge 捕获，再检查局域网直连规则。
+A：先启动已有的上游代理，确认它监听 `127.0.0.1`，再核对协议、端口和认证。向导还会通过代理测试 `example.com:443`，该连接不可达时也会停止。
 
-## 依据与版本差异
+**Q：为什么 SOCKS5 用户名密码不能用？**
 
-- [ProxyBridge Windows Profiles 文档](https://proxybridge.interceptsuite.com/docs/windows-profiles/)：`.pbprofile` JSON 格式及导入菜单。
-- [ProxyBridge 官方 Windows Releases](https://github.com/InterceptSuite/ProxyBridge/releases)：脚本动态选择 Windows 安装包及发布资产摘要。2026-10-22 核对到最新 Windows 发布为 `v4.2.0_Windows`，资产 `ProxyBridge-Setup-4.2.0.exe`。
-- [ZeroOmega 项目主页](https://github.com/zero-peak/ZeroOmega)：Edge 和 Chrome 官方商店链接。
-- [SwitchyOmega 官方 FAQ](https://github.com/FelisCatus/SwitchyOmega/wiki/FAQ)：Chromium 的 SOCKS 认证限制。
+A：本方案需要浏览器和 ProxyBridge 共用同一端口；Edge/Chrome 不支持此类 SOCKS5 认证。请选择无认证 SOCKS5 或 HTTP 端口。
 
-## 本地验证
+**Q：浏览器没有按规则分流？**
 
-已用 Windows PowerShell 5.1 解析器检查脚本语法，并用本地模拟服务测试 HTTP CONNECT 与 SOCKS5 CONNECT 握手；核对 GitHub API 的 Windows 发布资产和 SHA256 字段。下载、安装、扩展导入和真实代理连通性需在用户双击 BAT 后按向导完成。
+A：确认扩展已导入备份并选中 `Split-Auto`，检查是否有其他扩展控制浏览器代理，并核对 ProxyBridge 中 `chrome.exe` / `msedge.exe` 为直连。
+
+**Q：本地服务或局域网访问异常？**
+
+A：先停止 ProxyBridge 捕获确认影响，再检查 ProxyBridge 规则顺序及扩展中的本地直连规则。
+
+**Q：安装包校验失败？**
+
+A：不要运行它。删除桌面上的损坏文件，重新执行向导下载校验。
+
+## 安全提醒
+
+生成的 `.pbprofile` 与 `.bak` 若含账号密码，内容是**明文**。不要分享、上传或提交 Git。仓库的 `.gitignore` 会排除这些文件名，在其他仓库中仍须自行检查。
+
+## 项目文件
+
+- [SKILL.md](SKILL.md)：AI 助手的执行说明和自检清单。
+- [BAT](scripts/Start_SplitProxy.bat) 与 [PowerShell 脚本](scripts/SplitProxy.ps1)：原样保留的向导。
+
+本项目按 [MIT License](LICENSE) 开源。

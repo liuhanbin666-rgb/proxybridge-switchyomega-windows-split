@@ -1,11 +1,19 @@
-# Runtime configuration may contain plaintext proxy credentials.
+# Local runtime and validation output
+/work/
+/outputs/
 *.pbprofile
 OmegaOptions-*.bak
-*.env
+
+# Credentials, downloads, logs, temporary files
+.env
+.env.*
 *.log
 *.tmp
 *.zip
 *.exe
-work/
-outputs/*.pbprofile
-outputs/OmegaOptions-*.bak
+
+# Distributable skill files
+!/scripts/
+!/SKILL.md
+!/README.md
+!/LICENSE

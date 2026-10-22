@@ -147,7 +147,7 @@ try {
 
     Say '第 5 步：生成 ProxyBridge 可导入 .pbprofile（JSON）。'
     $rules = [Collections.Generic.List[object]]::new()
-    foreach ($host in @('localhost','127.0.0.0/8','::1','192.168.0.0/16','10.0.0.0/8','172.16.0.0/12','169.254.0.0/16','fe80::/10')) { Add-Rule $rules '*' $host 'DIRECT' }
+    foreach ($hostPattern in @('localhost','127.0.0.0/8','::1','192.168.0.0/16','10.0.0.0/8','172.16.0.0/12','169.254.0.0/16','fe80::/10')) { Add-Rule $rules '*' $hostPattern 'DIRECT' }
     foreach ($process in @('proxybridge.exe','wechatdevtools.exe','hbuilderx.exe','chrome.exe','msedge.exe')) { Add-Rule $rules $process '*' 'DIRECT' }
     foreach ($process in @('cursor.exe','code.exe','git.exe','node.exe','python.exe')) { Add-Rule $rules $process '*' 'PROXY' }
     Add-Rule $rules '*' '*' 'DIRECT'
