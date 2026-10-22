@@ -63,7 +63,9 @@ function Test-Proxy([string]$Kind, [int]$Port, [string]$User, [string]$Password)
     } finally { $client.Dispose() }
 }
 function Add-Rule([Collections.Generic.List[object]]$Rules, [string]$Process, [string]$Hosts, [string]$Action) {
-    $Rules.Add([ordered]@{ Name="$Process $Hosts $Action"; ProcessName=$Process; TargetHosts=$Hosts; TargetDomains='*'; TargetPorts='*'; Protocol='BOTH'; Action=$Action; IsEnabled=$true; LocalhostViaProxy=$false; ProxyConfigId=1 })
+    $ipHosts = if ($Hosts -eq 'localhost') { '' } else { $Hosts }
+    $domains = if ($Hosts -eq 'localhost') { 'localhost' } elseif ($Hosts -eq '*') { '*' } else { '' }
+    $Rules.Add([ordered]@{ Name="$Process $Hosts $Action"; ProcessName=$Process; TargetHosts=$ipHosts; TargetDomains=$domains; TargetPorts='*'; Protocol='BOTH'; Action=$Action; IsEnabled=$true; LocalhostViaProxy=$false; ProxyConfigId=1 })
 }
 
 if ($SyntaxOnly) { return }
