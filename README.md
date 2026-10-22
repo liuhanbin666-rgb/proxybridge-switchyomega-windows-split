@@ -61,3 +61,9 @@ A：不要运行它。删除桌面上的损坏文件，重新执行向导下载�
 - [BAT](scripts/Start_SplitProxy.bat) 与 [PowerShell 脚本](scripts/SplitProxy.ps1)：原样保留的向导。
 
 本项目按 [MIT License](LICENSE) 开源。
+
+## 本次整理与验证
+
+- **问题**：原仓库把已验证的向导放在 `outputs/`，缺少可供技能目录识别的根目录 `SKILL.md`，新手说明也未列齐所需工具。
+- **处理**：把两个脚本逐字节复制到 `scripts/`，用 `.gitattributes` 保持脚本原始字节；新增技能说明、工具清单和许可证，并让 `.gitignore` 排除本地 `outputs/` 与 `work/`。
+- **验证**：两个 `scripts/` 文件与对应 `outputs/` 源文件的 SHA256 各自一致；PowerShell 5.1 语法解析无错误；`git diff --check` 通过；提交清单仅含技能分发文件。未在本次文档整理中安装 ProxyBridge、导入扩展或测试真实上游代理；这些操作需按上面的步骤在使用者电脑上完成。
