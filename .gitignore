@@ -11,6 +11,13 @@ OmegaOptions-*.bak
 *.tmp
 *.zip
 *.exe
+*.db
+*.db-wal
+*.db-shm
+*.etl
+/lastmsg.txt
+/runtime/
+/diagnostics/
 
 # Distributable skill files
 !/scripts/

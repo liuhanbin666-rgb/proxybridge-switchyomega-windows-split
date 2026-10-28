@@ -1,7 +1,7 @@
 ---
 name: proxybridge-switchyomega-windows-split
 description: 在 Windows 上用 ProxyBridge 和 SwitchyOmega 3（ZeroOmega）给指定程序与浏览器域名分流。用户想通过已有的本地 SOCKS5/HTTP 代理，同时保持本地和局域网直连时使用此技能。
-version: 1.0.0
+version: 1.1.0
 author: liuhanbin666-rgb
 ---
 
@@ -53,6 +53,8 @@ author: liuhanbin666-rgb
 - [ ] 若用户依赖本地开发或真机调试，已在其环境中实际检查。
 
 ## 故障排查
+
+驱动、系统代理叠加与自启动的完整证据流程见 [docs/driver-recovery-and-autostart.md](docs/driver-recovery-and-autostart.md)。不要以进程存在、服务 Running 或上游端口监听代替实际分流验证。新增辅助脚本与原始向导分离；原有双脚本保持不变。辅助脚本的 `-ValidateOnly` 不加载驱动、不启动引擎、不注册任务。
 
 | 现象 | 检查与处理 |
 | --- | --- |
